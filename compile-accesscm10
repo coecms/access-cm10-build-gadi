@@ -1,0 +1,83 @@
+#!/bin/bash
+set -eux
+
+# Number of processors CICE will be assigned
+CICE_PROCS=6
+
+# Clear the environment file
+cat /dev/null > bin/environs.vayu.nci.org.au
+
+# Load modules
+module purge
+module load intel-compiler/2020.0.166
+module load openmpi/4.0.2
+module load netcdf/4.7.1
+export CPATH=$NETCDF_ROOT/include/Intel/:$CPATH
+
+module use ~access/modules
+module load fcm
+
+# Compile oasis
+pushd submodels/oasis3_cmip5/prism/compile
+./comp_oasis325.VAYU
+export CPATH=$PWD/../Linux/build/mod/oasis3.MPI1:$CPATH
+export CPATH=$PWD/../Linux/build/lib/psmile.MPI1:$CPATH
+export LIBRARY_PATH=$PWD/../Linux/lib:$LIBRARY_PATH
+export LIBRARY_PATH=$PWD/../Linux/lib/oasis3:$LIBRARY_PATH
+popd
+
+# Compile CICE
+pushd submodels/cice4.1_cmip5
+
+sed -i \
+    -e 's:source ${HOME}/bin:source $cwd/../../bin:' \
+    -e 's:$HOME/ACCESS:$cwd/../..:' \
+    -e 's:\<cice4.1\>:cice4.1_cmip5:' \
+    comp_access_cice4_VAYU
+
+sed -i \
+    -e 's:-lnetcdf$:-lnetcdff:' \
+    bld/Macros.Linux.vayu.nci.org.au
+
+./comp_access_cice4_VAYU $CICE_PROCS
+popd
+
+# Compile MOM
+pushd submodels/mom4p1_cmip5_raijin/compile
+
+sed -i \
+    -e 's:/apps/openmpi/.*/::' \
+    -e 's:-lsma::' \
+    -e 's:-lnetcdf -lmpi:-lnetcdff -lnetcdf -lmpi:' \
+    ../bin/mkmf.template.vayu.nci.org.au
+
+./comp_auscom_mom4p1.VAYU
+popd
+
+# Compile GCOM
+pushd submodels/GCOM3.3_nci
+
+export GCOM_SOURCE=$PWD
+export GCOM_OUTDIR=$PWD/extract
+export GCOM_HOST=localhost
+export GCOM_ROUTDIR=$PWD/rextract
+export GCOM_MACHINE=nci_xe_mpp
+
+fcm extract build/configs/gcom.cfg
+pushd rextract
+fcm build
+popd
+
+export CPATH=$GCOM_ROUTDIR/inc:$CPATH
+export LIBRARY_PATH=$GCOM_ROUTDIR/lib:$LIBRARY_PATH
+
+popd
+
+# Compile UM
+pushd submodels/UM/compile
+
+sed -i -e '/^module/d' compile_hadgem2
+sed -i -e 's/-ldummygrib//' ../ummodel_hg2-r1.1/cfg/bld.cfg
+
+./compile_hadgem2-r1.1
+popd

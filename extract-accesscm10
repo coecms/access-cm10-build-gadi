@@ -1,0 +1,89 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$HOSTNAME" != accessdev.nci.org.au ]; then
+    echo "ERROR: Run this script on accessdev.nci.org.au"
+    exit -1
+fi
+
+checkout () {
+    REPO=$1
+    TARGET=$2
+
+    if [ ! -d $TARGET ]; then
+        svn checkout $REPO $TARGET
+    fi
+}
+
+check_permissions () {
+    set +e
+
+    # Start gpg agent if not running
+    pgrep -U $USER gpg-agent &> /dev/null
+    if [ $? != 0 ]; then
+         [ -f ~/.gpg-agent-info ] && source ~/.gpg-agent-info
+         if [ -S "${GPG_AGENT_INFO%%:*}" ]; then
+             export GPG_AGENT_INFO
+         else
+             eval $( gpg-agent --daemon --allow-preset-passphrase --batch --max-cache-ttl 43200 --write-env-file ~/.gpg-agent-info )
+         fi
+    fi
+
+    # Authenticate
+    access-auth
+
+    needs_access=0
+
+    for repo in oasis cice mom4 um cmip5; do
+        svn info --non-interactive https://access-svn.nci.org.au/svn/$repo &> /dev/null
+        if [ $? != 0 ]; then
+            echo "Ask cws_help@nci.org.au for access to https://access-svn.nci.org.au/svn/$repo"
+            needs_access=1
+        fi
+    done
+
+    if [ needs_access == 1 ]; then
+        exit -1
+    fi
+
+    set -e
+}
+
+check_permissions
+
+# Extract the ACCESS-CM 1.0 source code into the current directory
+
+checkout https://access-svn.nci.org.au/svn/cmip5/trunk/bin@r80 bin
+
+mkdir -p submodels
+mkdir -p submodels/UM
+
+checkout https://access-svn.nci.org.au/svn/oasis/branches/oasis3_cmip5 submodels/oasis3_cmip5
+checkout https://access-svn.nci.org.au/svn/cice/branches/auscom/release-1.0-raijin submodels/cice4.1_cmip5
+checkout https://access-svn.nci.org.au/svn/mom4/branches/mom4p1_cmip5_raijin submodels/mom4p1_cmip5_raijin
+checkout https://access-svn.nci.org.au/svn/cmip5/trunk/submodels/UM/compile submodels/UM/compile
+checkout https://access-svn.nci.org.au/svn/um/branches/dev/han32j/VN7.3-HadGEM2-1.1 submodels/UM/umbase_hg2-r1.1
+checkout https://access-svn.nci.org.au/svn/cmip5/trunk/submodels/UM/ummodel_hg2-r1.1 submodels/UM/ummodel_hg2-r1.1
+
+# Extract the sample experiments
+mkdir -p exp
+checkout https://access-svn.nci.org.au/svn/cmip5/trunk/exp/a10_hist exp/a10_hist
+checkout https://access-svn.nci.org.au/svn/cmip5/branches/dev/saw562/a10_piControl exp/a10_piControl
+
+cat << EOF
+================================================================================
+
+Now copy the source code to Gadi, e.g.
+
+    rsync -av $PWD/ gadi.nci.org.au:/scratch/$PROJECT/$USER/access-cm10
+
+And then on Gadi run
+
+    cd /scratch/$PROJECT/$USER/access-cm10
+    ./compile-accesscm10
+
+See https://accessdev.nci.org.au/trac/wiki/access/ACCESS1.0_raijin for 
+information on the experiments in the 'exp' directory
+================================================================================
+EOF
