@@ -81,3 +81,10 @@ sed -i -e 's/-ldummygrib//' ../ummodel_hg2-r1.1/cfg/bld.cfg
 
 ./compile_hadgem2-r1.1
 popd
+
+# Fixup run scripts
+sed -i \
+    -e '/^\s*. $PAREXE/d' \
+    -e '/^\s*. \/opt\/Modules/d' \
+    bin/um_scripts/qsexecute
+
