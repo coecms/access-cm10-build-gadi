@@ -69,7 +69,6 @@ checkout https://access-svn.nci.org.au/svn/cmip5/trunk/submodels/UM/ummodel_hg2-
 # Extract the sample experiments
 mkdir -p exp
 checkout https://access-svn.nci.org.au/svn/cmip5/trunk/exp/a10_hist exp/a10_hist
-checkout https://access-svn.nci.org.au/svn/cmip5/branches/dev/saw562/a10_piControl exp/a10_piControl
 
 cat << EOF
 ================================================================================
