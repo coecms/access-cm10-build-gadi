@@ -17,13 +17,12 @@ checkout () {
 }
 
 check_permissions () {
-    set +e
 
     # Start gpg agent if not running
     pgrep -U $USER gpg-agent &> /dev/null
     if [ $? != 0 ]; then
          [ -f ~/.gpg-agent-info ] && source ~/.gpg-agent-info
-         if [ -S "${GPG_AGENT_INFO%%:*}" ]; then
+         if [ -O "${GPG_AGENT_INFO%%:*}" ]; then
              export GPG_AGENT_INFO
          else
              eval $( gpg-agent --daemon --allow-preset-passphrase --batch --max-cache-ttl 43200 --write-env-file ~/.gpg-agent-info )
@@ -35,6 +34,7 @@ check_permissions () {
 
     needs_access=0
 
+    set +e
     for repo in oasis cice mom4 um cmip5; do
         svn info --non-interactive https://access-svn.nci.org.au/svn/$repo &> /dev/null
         if [ $? != 0 ]; then
@@ -42,12 +42,12 @@ check_permissions () {
             needs_access=1
         fi
     done
+    set -e
 
     if [ needs_access == 1 ]; then
         exit -1
     fi
 
-    set -e
 }
 
 check_permissions
