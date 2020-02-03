@@ -68,8 +68,8 @@ pushd $GCOM_OUTDIR
 fcm build
 popd
 
-export CPATH=$GCOM_ROUTDIR/inc:$CPATH
-export LIBRARY_PATH=$GCOM_ROUTDIR/lib:$LIBRARY_PATH
+export CPATH=$GCOM_OUTDIR/inc:$CPATH
+export LIBRARY_PATH=$GCOM_OUTDIR/lib:$LIBRARY_PATH
 
 popd
 
