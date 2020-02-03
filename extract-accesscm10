@@ -31,10 +31,13 @@ check_permissions () {
     # Authenticate
     access-auth
 
+    # May need to enter password a second time
+    svn info https://access-svn.nci.org.au/svn/um
+
     needs_access=0
 
     set +e
-    for repo in oasis cice mom4 um cmip5; do
+    for repo in oasis cice mom4 um cmip5 GCOM; do
         svn info --non-interactive https://access-svn.nci.org.au/svn/$repo &> /dev/null
         if [ $? != 0 ]; then
             echo "Ask cws_help@nci.org.au for access to https://access-svn.nci.org.au/svn/$repo"
