@@ -19,6 +19,7 @@ checkout () {
 check_permissions () {
 
     # Start gpg agent if not running
+    set +e
     pgrep -U $USER gpg-agent &> /dev/null
     if [ $? != 0 ]; then
          [ -f ~/.gpg-agent-info ] && source ~/.gpg-agent-info
@@ -34,7 +35,6 @@ check_permissions () {
 
     needs_access=0
 
-    set +e
     for repo in oasis cice mom4 um cmip5; do
         svn info --non-interactive https://access-svn.nci.org.au/svn/$repo &> /dev/null
         if [ $? != 0 ]; then
