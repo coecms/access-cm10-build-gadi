@@ -59,12 +59,12 @@ pushd submodels/GCOM3.3_nci
 
 export GCOM_SOURCE=$PWD
 export GCOM_OUTDIR=$PWD/extract
-export GCOM_HOST=localhost
-export GCOM_ROUTDIR=$PWD/rextract
 export GCOM_MACHINE=nci_xe_mpp
 
+sed -i -e '/^rdest/d' build/configs/gcom.cfg
+
 fcm extract build/configs/gcom.cfg
-pushd rextract
+pushd $GCOM_OUTDIR
 fcm build
 popd
 
