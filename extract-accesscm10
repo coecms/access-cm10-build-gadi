@@ -61,6 +61,7 @@ mkdir -p submodels/UM
 checkout https://access-svn.nci.org.au/svn/oasis/branches/oasis3_cmip5 submodels/oasis3_cmip5
 checkout https://access-svn.nci.org.au/svn/cice/branches/auscom/release-1.0-raijin submodels/cice4.1_cmip5
 checkout https://access-svn.nci.org.au/svn/mom4/branches/mom4p1_cmip5_raijin submodels/mom4p1_cmip5_raijin
+checkout https://access-svn.nci.org.au/svn/GCOM/branches/dev/Share/GCOM3.3_nci submodels/GCOM3.3_nci
 checkout https://access-svn.nci.org.au/svn/cmip5/trunk/submodels/UM/compile submodels/UM/compile
 checkout https://access-svn.nci.org.au/svn/um/branches/dev/han32j/VN7.3-HadGEM2-1.1 submodels/UM/umbase_hg2-r1.1
 checkout https://access-svn.nci.org.au/svn/cmip5/trunk/submodels/UM/ummodel_hg2-r1.1 submodels/UM/ummodel_hg2-r1.1
